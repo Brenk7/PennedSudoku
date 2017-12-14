@@ -40,8 +40,34 @@ def naked_twins(values):
     and because it is simpler (since the reduce_puzzle function already calls this
     strategy repeatedly).
     """
-    # TODO: Implement this function!
-    raise NotImplementedError
+    # take a unitlist and iterate over each unit, looking for a set of twins,
+    # then deducting the values from the other boxes in the unit
+    for unit in unitlist:
+        # initialize an empty list to hold our naked twin pairs
+        naked_twins = []
+        # iterate over each box in the unit
+        for box in unit:
+            # if the amount of possible values in the box is 2, we might have located a twin
+            if len(values[box]) == 2:
+                # loop through the unit's boxes again, looking to see if we can locate a twin
+                for potential_twin in unit:
+                    # if the potential twin is not the current box and values of the boxes match....
+                    if potential_twin != box and values[box] == values[potential_twin]:
+                        # double check that the pair is not already in our naked twins array
+                        if [box, potential_twin] not in naked_twins and [potential_twin, box] not in naked_twins:
+                            # add it!
+                            naked_twins.append([box, potential_twin])
+        # now that we have our naked_twins list complete, we can start removing their values from the other boxes in the unit
+        for twins in naked_twins:
+            # iterate over each box in the unit
+            for box in unit:
+                # iterate over each value contained in the first twin (since they are identical)
+                for digit in values[twins[0]]:
+                    # if the box is not one of the twins in the unit, deduct the twin's values
+                    if box not in twins:
+                        values = assign_value(values, box, values[box].replace(digit, ''))
+
+    return values
 
 
 def eliminate(values):
@@ -114,6 +140,7 @@ def reduce_puzzle(values):
     stalled = False
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+        values = naked_twins(values)
         values = eliminate(values)
         values = only_choice(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
